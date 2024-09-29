@@ -10,7 +10,7 @@ app.use(express.json());
 
 // Configure session
 app.use(session({
-    secret: 'your-secret-key', // Change this to a strong secret key
+    secret: 'mySuperSecretKey12345678901234567890', // Change this to a strong secret key
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
