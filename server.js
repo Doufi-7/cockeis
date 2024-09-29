@@ -1,36 +1,53 @@
 const express = require('express');
-const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// إعداد الكوكيز والجلسات
-app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+// إعداد الجلسة
 app.use(session({
-    secret: 'your-secret-key', // تأكد من تغيير المفتاح إلى شيء قوي
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // يجب أن يكون true في بيئة الإنتاج مع HTTPS
+  secret: 'your-secret-key', // قم بتغيير هذه القيمة إلى مفتاح سري خاص بك
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // تأكد من ضبط secure على true في بيئة الإنتاج
 }));
 
 // نقطة النهاية لتسجيل الدخول
 app.post('/login', (req, res) => {
-    // من المفترض التحقق من بيانات الاعتماد هنا
-    req.session.user = { id: 1, name: 'User' }; // تخزين معلومات المستخدم في الجلسة
-    res.send('Logged in!');
+  const { username, password } = req.body;
+  // تحقق من بيانات الاعتماد (يمكنك استبدال هذا بالتحقق الفعلي)
+  if (username === 'admin' && password === 'password') {
+    req.session.user = username;
+    res.send('Logged in');
+  } else {
+    res.status(401).send('Unauthorized');
+  }
 });
 
-// نقطة النهاية للتحقق من الجلسة
-app.get('/session', (req, res) => {
-    if (req.session.user) {
-        res.send(`Welcome back, ${req.session.user.name}`);
-    } else {
-        res.send('You are not logged in.');
+// نقطة النهاية لتسجيل الخروج
+app.post('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      return res.status(500).send('Could not log out');
     }
+    res.send('Logged out');
+  });
 });
 
-// بدء الخادم
+// نقطة النهاية الرئيسية
+app.get('/', (req, res) => {
+  if (req.session.user) {
+    res.send(`Hello, ${req.session.user}`);
+  } else {
+    res.send('Welcome! Please log in.');
+  }
+});
+
+// بدء السيرفر
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
