@@ -1,53 +1,40 @@
 const express = require('express');
 const session = require('express-session');
-const bodyParser = require('body-parser');
-
+const cookieParser = require('cookie-parser');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-// إعداد الجلسة
+// Configure session
 app.use(session({
-  secret: 'your-secret-key', // قم بتغيير هذه القيمة إلى مفتاح سري خاص بك
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false } // تأكد من ضبط secure على true في بيئة الإنتاج
+    secret: 'your-secret-key', // Change this to a strong secret key
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Set to true if using HTTPS
 }));
 
-// نقطة النهاية لتسجيل الدخول
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  // تحقق من بيانات الاعتماد (يمكنك استبدال هذا بالتحقق الفعلي)
-  if (username === 'admin' && password === 'password') {
-    req.session.user = username;
-    res.send('Logged in');
-  } else {
-    res.status(401).send('Unauthorized');
-  }
-});
-
-// نقطة النهاية لتسجيل الخروج
-app.post('/logout', (req, res) => {
-  req.session.destroy(err => {
-    if (err) {
-      return res.status(500).send('Could not log out');
-    }
-    res.send('Logged out');
-  });
-});
-
-// نقطة النهاية الرئيسية
 app.get('/', (req, res) => {
-  if (req.session.user) {
-    res.send(`Hello, ${req.session.user}`);
-  } else {
-    res.send('Welcome! Please log in.');
-  }
+    res.send('Welcome to the Cookie Session Example!');
 });
 
-// بدء السيرفر
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+// Route to set a session variable
+app.post('/set-session', (req, res) => {
+    req.session.user = req.body.user; // Set session variable
+    res.send('Session variable set!');
+});
+
+// Route to get a session variable
+app.get('/get-session', (req, res) => {
+    if (req.session.user) {
+        res.send(`Session variable: ${req.session.user}`);
+    } else {
+        res.send('No session variable found.');
+    }
+});
+
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
 });
